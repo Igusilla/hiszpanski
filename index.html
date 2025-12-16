@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiszpański: Kolokwium</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM via ESM -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.263.1"
+        }
+      }
+    </script>
+    
+    <style>
+        body { background-color: #030712; color: #e5e7eb; font-family: sans-serif; }
+        .perspective-1000 { perspective: 1000px; }
+        .preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        /* Ukrywanie paska przewijania */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            ArrowLeft, Shuffle, RotateCcw, Layers, Check, X, 
+            MessageCircle, Heart, Briefcase, Hotel, 
+            Play, Trophy, Star, Eye, EyeOff, Repeat, Keyboard, ArrowLeftRight,
+            Loader2, Sparkles, Volume2
+        } from 'lucide-react';
+
+        // --- BAZA DANYCH ---
+        const FLASHCARDS_DATA = [
+            // a) TIEMPO LIBRE
+            { id: 1, front: "El garaje", back: "Garaż", category: "Tiempo libre" },
+            { id: 2, front: "El minibar", back: "Minibar", category: "Tiempo libre" },
+            { id: 3, front: "El gimnasio", back: "Siłownia", category: "Tiempo libre" },
+            { id: 4, front: "La piscina", back: "Basen", category: "Tiempo libre" },
+            { id: 5, front: "El spa", back: "Spa", category: "Tiempo libre" },
+            { id: 6, front: "El campo de golf", back: "Pole golfowe", category: "Tiempo libre" },
+            { id: 7, front: "La calefacción / El aire acondicionado", back: "Klimatyzacja (i ogrzewanie)", category: "Tiempo libre" },
+            { id: 8, front: "Internet / Wifi", back: "Internet", category: "Tiempo libre" },
+            { id: 9, front: "Televisión vía satélite", back: "Telewizja satelitarna", category: "Tiempo libre" },
+            { id: 10, front: "Sala de reuniones", back: "Sala konferencyjna", category: "Tiempo libre" },
+            { id: 11, front: "Hablar con", back: "Rozmawiać z", category: "Tiempo libre" },
+            { id: 12, front: "Descansar", back: "Odpoczywać", category: "Tiempo libre" },
+            { id: 13, front: "Ir a lugar tranquilo", back: "Iść w spokojne miejsce", category: "Tiempo libre" },
+            { id: 14, front: "Estar en la naturaleza", back: "Być na łonie natury", category: "Tiempo libre" },
+            { id: 15, front: "Decir", back: "Mówić", category: "Tiempo libre" },
+            { id: 16, front: "Poner", back: "Włączać (też: kłaść)", category: "Tiempo libre" },
+            { id: 17, front: "Venir", back: "Przychodzić", category: "Tiempo libre" },
+            { id: 18, front: "Salir", back: "Wychodzić", category: "Tiempo libre" },
+            { id: 19, front: "Coleccionar sellos", back: "Zbierać znaczki", category: "Tiempo libre" },
+            { id: 20, front: "Encontrarse (con)", back: "Spotkać się (z)", category: "Tiempo libre" },
+            { id: 21, front: "Esquiar", back: "Jeździć na nartach", category: "Tiempo libre" },
+            { id: 22, front: "Hacer deporte", back: "Uprawiać sport", category: "Tiempo libre" },
+            { id: 23, front: "Hacer excursiones", back: "Robić wycieczki", category: "Tiempo libre" },
+            { id: 24, front: "Hacer footing", back: "Jogging / Biegać", category: "Tiempo libre" },
+            { id: 25, front: "Hacer fotos", back: "Robić zdjęcia", category: "Tiempo libre" },
+            { id: 26, front: "Hacer gimnasia", back: "Gimnastykować się", category: "Tiempo libre" },
+            { id: 27, front: "Hacer senderismo", back: "Uprawiać turystykę pieszą", category: "Tiempo libre" },
+            { id: 28, front: "Hacer snorkeling", back: "Nurkować z rurką", category: "Tiempo libre" },
+            { id: 29, front: "Hacer surf", back: "Surfować", category: "Tiempo libre" },
+            { id: 30, front: "Hacer trabajos de bricolaje", back: "Majsterkować", category: "Tiempo libre" },
+            { id: 31, front: "Hacer trabajos manuales", back: "Wykonywać prace ręczne", category: "Tiempo libre" },
+            { id: 32, front: "Hacer yoga", back: "Uprawiać jogę", category: "Tiempo libre" },
+            { id: 33, front: "Ir a comer", back: "Zjeść / Iść na obiad", category: "Tiempo libre" },
+            { id: 34, front: "Ir al cine", back: "Iść do kina", category: "Tiempo libre" },
+            { id: 35, front: "Ir al gimnasio", back: "Iść na siłownię", category: "Tiempo libre" },
+            { id: 36, front: "Ir en bicicleta", back: "Jeździć na rowerze", category: "Tiempo libre" },
+            { id: 37, front: "Ir en canoa", back: "Pływać kajakiem", category: "Tiempo libre" },
+            { id: 38, front: "Jugar a las cartas", back: "Grać w karty", category: "Tiempo libre" },
+            { id: 39, front: "Jugar al ajedrez", back: "Grać w szachy", category: "Tiempo libre" },
+            { id: 40, front: "Jugar al baloncesto", back: "Grać w koszykówkę", category: "Tiempo libre" },
+            { id: 41, front: "Jugar al balonmano", back: "Grać w piłkę ręczną", category: "Tiempo libre" },
+            { id: 42, front: "Jugar al fútbol", back: "Grać w piłkę nożną", category: "Tiempo libre" },
+            { id: 43, front: "Jugar al golf", back: "Grać w golfa", category: "Tiempo libre" },
+            { id: 44, front: "Jugar al ordenador", back: "Grać na komputerze", category: "Tiempo libre" },
+            { id: 45, front: "Jugar al tenis", back: "Grać w tenisa", category: "Tiempo libre" },
+            { id: 46, front: "Jugar al voleibol", back: "Grać w siatkówkę", category: "Tiempo libre" },
+            { id: 47, front: "Leer", back: "Czytać", category: "Tiempo libre" },
+            { id: 48, front: "Montar a caballo", back: "Jeździć konno", category: "Tiempo libre" },
+            { id: 49, front: "Nadar", back: "Pływać", category: "Tiempo libre" },
+            { id: 50, front: "Navegar", back: "Żeglować", category: "Tiempo libre" },
+            { id: 51, front: "Navegar por internet", back: "Surfować po internecie", category: "Tiempo libre" },
+            { id: 52, front: "Pasear", back: "Spacerować", category: "Tiempo libre" },
+            { id: 53, front: "Patinar", back: "Jeździć na łyżwach/rolkach", category: "Tiempo libre" },
+            { id: 54, front: "Quedar (con)", back: "Umówić się (z)", category: "Tiempo libre" },
+            { id: 55, front: "Tocar el piano", back: "Grać na pianinie", category: "Tiempo libre" },
+            { id: 56, front: "Tocar la guitarra", back: "Grać na gitarze", category: "Tiempo libre" },
+            { id: 57, front: "Ver la televisión", back: "Oglądać telewizję", category: "Tiempo libre" },
+            { id: 58, front: "Viajar", back: "Podróżować", category: "Tiempo libre" },
+            { id: 59, front: "Visitar", back: "Odwiedzać, zwiedzać", category: "Tiempo libre" },
+
+            // b) RESERVA
+            { id: 60, front: "¿En qué puedo ayudarle?", back: "W czym mogę pomóc?", category: "Reserva" },
+            { id: 61, front: "¿Para qué fechas?", back: "Na jakie daty?", category: "Reserva" },
+            { id: 62, front: "¿Para cuántas personas?", back: "Dla ilu osób?", category: "Reserva" },
+            { id: 63, front: "Quería reservar 6 habitaciones", back: "Chciałbym zarezerwować 6 pokoi", category: "Reserva" },
+            { id: 64, front: "Para tres noches", back: "Na trzy noce", category: "Reserva" },
+            { id: 65, front: "Del 20 al 23 de mayo", back: "Od 20 do 23 maja", category: "Reserva" },
+            { id: 66, front: "Para 17 personas", back: "Dla 17 osób", category: "Reserva" },
+            { id: 67, front: "¿Me puede decir si tienen...?", back: "Czy może mi Pan powiedzieć, czy macie...?", category: "Reserva" },
+            { id: 68, front: "¿Está incluido en el precio?", back: "Czy to jest wliczone w cenę?", category: "Reserva" },
+            { id: 69, front: "Sí, y además ofrecemos...", back: "Tak, a ponadto oferujemy...", category: "Reserva" },
+            { id: 70, front: "No, lo siento", back: "Nie, przykro mi", category: "Reserva" },
+            { id: 71, front: "Doble / Individual", back: "Dwuosobowy / Jednoosobowy", category: "Reserva" },
+            { id: 72, front: "Exterior / Interior", back: "Zewnętrzny / Wewnętrzny", category: "Reserva" },
+            { id: 73, front: "Tranquila / Ruidosa", back: "Spokojny / Hałaśliwy", category: "Reserva" },
+            { id: 74, front: "Con ducha / baño", back: "Z prysznicem / z wanną", category: "Reserva" },
+            { id: 75, front: "Con televisión / Internet", back: "Z telewizorem / Internetem", category: "Reserva" },
+            { id: 76, front: "Sala con proyector", back: "Sala z rzutnikiem", category: "Reserva" },
+            { id: 77, front: "Todas las salas disponen de Internet", back: "Wszystkie sale dysponują Internetem", category: "Reserva" },
+            { id: 78, front: "¿El catering está incluido?", back: "Czy catering jest wliczony?", category: "Reserva" },
+            { id: 79, front: "Le puedo enviar algunas ofertas", back: "Mogę Panu przesłać kilka ofert", category: "Reserva" },
+            { id: 80, front: "Perfecto, muchas gracias", back: "Idealnie, dziękuję bardzo", category: "Reserva" },
+
+            // c) PROBLEMAS
+            { id: 81, front: "Tenemos un problema con...", back: "Mamy problem z...", category: "Problemas" },
+            { id: 82, front: "En la habitación faltan toallas", back: "W pokoju brakuje ręczników", category: "Problemas" },
+            { id: 83, front: "No hay toallas", back: "Nie ma ręczników", category: "Problemas" },
+            { id: 84, front: "La habitación no está limpia", back: "Pokój nie jest czysty", category: "Problemas" },
+            { id: 85, front: "Mire, es que no funciona la ducha", back: "Proszę spojrzeć, nie działa prysznic", category: "Problemas" },
+            { id: 86, front: "No funciona el aire acondicionado", back: "Nie działa klimatyzacja", category: "Problemas" },
+            { id: 87, front: "Hay mucho ruido", back: "Jest duży hałas", category: "Problemas" },
+            { id: 88, front: "No podemos oír nada", back: "Nic nie słyszymy", category: "Problemas" },
+            { id: 89, front: "La comida es mala", back: "Jedzenie jest niedobre", category: "Problemas" },
+            { id: 90, front: "Aquí no se puede trabajar", back: "Tutaj nie da się pracować", category: "Problemas" },
+            { id: 91, front: "No podemos proyectar la presentación", back: "Nie możemy wyświetlić prezentacji", category: "Problemas" },
+            { id: 92, front: "¡Cuánto lo siento!", back: "Bardzo przepraszam!", category: "Problemas" },
+            { id: 93, front: "Perdón por las molestias", back: "Przepraszam za kłopoty", category: "Problemas" },
+            { id: 94, front: "Disculpe", back: "Przepraszam (oficjalnie)", category: "Problemas" },
+            { id: 95, front: "Enseguida le mando al técnico", back: "Zaraz przyślę technika", category: "Problemas" },
+            { id: 96, front: "Ahora mismo le mando al personal de limpieza", back: "Zaraz przyślę personel sprzątający", category: "Problemas" },
+            { id: 97, front: "Podemos ofrecerle otro/-a...", back: "Możemy zaoferować Panu inny...", category: "Problemas" },
+            { id: 98, front: "Si lo desean", back: "Jeśli Państwo sobie życzą", category: "Problemas" },
+
+            // --- KINO (Z MATERIAŁÓW) ---
+            { id: 301, front: "La película de acción", back: "Film akcji", category: "Kino (Z materiałów)" },
+            { id: 302, front: "La película romántica", back: "Film romantyczny", category: "Kino (Z materiałów)" },
+            { id: 303, front: "La película del oeste", back: "Western", category: "Kino (Z materiałów)" },
+            { id: 304, front: "La película de terror", back: "Horror", category: "Kino (Z materiałów)" },
+            { id: 305, front: "La película de suspense", back: "Thriller", category: "Kino (Z materiałów)" },
+            { id: 306, front: "La película de comedia", back: "Komedia", category: "Kino (Z materiałów)" },
+            { id: 307, front: "La película de ciencia ficción", back: "Film science-fiction", category: "Kino (Z materiałów)" },
+            { id: 308, front: "La película de aventuras", back: "Film przygodowy", category: "Kino (Z materiałów)" },
+            { id: 309, front: "La película de dibujos animados", back: "Film animowany", category: "Kino (Z materiałów)" },
+            { id: 310, front: "Película basada en hechos reales", back: "Film oparty na faktach", category: "Kino (Z materiałów)" },
+            { id: 311, front: "El documental", back: "Dokument", category: "Kino (Z materiałów)" },
+            { id: 312, front: "El musical", back: "Musical", category: "Kino (Z materiałów)" },
+            { id: 313, front: "El cine", back: "Kino", category: "Kino (Z materiałów)" },
+            { id: 314, front: "La entrada", back: "Bilet", category: "Kino (Z materiałów)" },
+            { id: 315, front: "La taquilla", back: "Kasa biletowa", category: "Kino (Z materiałów)" },
+            { id: 316, front: "Las palomitas", back: "Popcorn", category: "Kino (Z materiałów)" },
+            { id: 317, front: "El proyector", back: "Projektor", category: "Kino (Z materiałów)" },
+            { id: 318, front: "La pantalla", back: "Ekran", category: "Kino (Z materiałów)" },
+            { id: 319, front: "La sala de cine", back: "Sala kinowa", category: "Kino (Z materiałów)" },
+            { id: 320, front: "La butaca / El asiento", back: "Fotel / Siedzenie", category: "Kino (Z materiałów)" },
+            { id: 321, front: "La fila", back: "Rząd", category: "Kino (Z materiałów)" },
+            { id: 322, front: "El actor", back: "Aktor", category: "Kino (Z materiałów)" },
+            { id: 323, front: "La actriz", back: "Aktorka", category: "Kino (Z materiałów)" },
+            { id: 324, front: "El director", back: "Reżyser", category: "Kino (Z materiałów)" },
+            { id: 325, front: "El guionista", back: "Scenarzysta", category: "Kino (Z materiałów)" },
+            { id: 326, front: "El espectador", back: "Widz", category: "Kino (Z materiałów)" },
+            { id: 327, front: "Hacer la cola", back: "Stać w kolejce", category: "Kino (Z materiałów)" },
+            { id: 328, front: "La sesión", back: "Seans", category: "Kino (Z materiałów)" },
+            { id: 329, front: "La cartelera", back: "Repertuar / Plakat", category: "Kino (Z materiałów)" },
+            { id: 330, front: "La claqueta", back: "Klaps filmowy", category: "Kino (Z materiałów)" },
+            { id: 331, front: "La banda sonora", back: "Ścieżka dźwiękowa", category: "Kino (Z materiałów)" },
+            { id: 332, front: "La sinopsis", back: "Streszczenie", category: "Kino (Z materiałów)" },
+            { id: 333, front: "Los estrenos", back: "Premiery", category: "Kino (Z materiałów)" },
+            { id: 334, front: "Rodar", back: "Kręcić (film)", category: "Kino (Z materiałów)" },
+            { id: 335, front: "Proyectar", back: "Wyświetlać", category: "Kino (Z materiałów)" },
+            { id: 336, front: "La trama", back: "Fabuła", category: "Kino (Z materiałów)" },
+            { id: 337, front: "El género", back: "Gatunek", category: "Kino (Z materiałów)" },
+            { id: 338, front: "El guion", back: "Scenariusz", category: "Kino (Z materiałów)" },
+
+            // --- KOLOKACJE ---
+            { id: 300, front: "Reservar una mesa", back: "Zarezerwować stolik", category: "Kolokacje" },
+            { id: 3010, front: "Hacer una reserva", back: "Dokonać rezerwacji", category: "Kolokacje" },
+            { id: 3020, front: "Pedir la cuenta", back: "Poprosić o rachunek", category: "Kolokacje" },
+            { id: 3030, front: "Salir de noche", back: "Wychodzić wieczorem", category: "Kolokacje" },
+            { id: 3040, front: "Pedir información", back: "Pytać o informację", category: "Kolokacje" },
+            { id: 3050, front: "Hacer deporte", back: "Uprawiać sport", category: "Kolokacje" },
+            { id: 3060, front: "Salir con amigos", back: "Wychodzić z przyjaciółmi", category: "Kolokacje" },
+            { id: 3070, front: "Reservar una habitación", back: "Zarezerwować pokój", category: "Kolokacje" },
+            { id: 3080, front: "Hacer la maleta", back: "Pakować walizkę", category: "Kolokacje" },
+            { id: 3090, front: "Hacer una foto", back: "Zrobić zdjęcie", category: "Kolokacje" },
+            { id: 3100, front: "Salir de copas", back: "Iść na drinka", category: "Kolokacje" },
+            { id: 3110, front: "Pedir el desayuno", back: "Zamówić śniadanie", category: "Kolokacje" },
+            { id: 3120, front: "Reservar un billete", back: "Zarezerwować bilet", category: "Kolokacje" },
+        ];
+
+        // --- QUIZ DATA ---
+        const QUIZ_AGREEMENT_DATA = [
+            { q: "Me gusta el fútbol. (+)", options: ["A mí también", "A mí no", "Yo también"], correct: "A mí también", type: "gustar" },
+            { q: "No me interesa la política. (-)", options: ["A mí tampoco", "A mí sí", "Yo tampoco"], correct: "A mí tampoco", type: "gustar" },
+            { q: "Tengo hambre. (+)", options: ["Yo también", "A mí también", "Yo no"], correct: "Yo también", type: "normal" },
+            { q: "No soy francés. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
+            { q: "Me encanta viajar. (+)", options: ["A mí también", "Yo też", "A mí sí"], correct: "A mí también", type: "gustar" },
+            { q: "No trabajo los domingos. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo no"], correct: "Yo tampoco", type: "normal" },
+            { q: "Me gusta mucho leer. (-)", options: ["A mí no", "A mí tampoco", "Yo no"], correct: "A mí no", type: "gustar_disagree" },
+            { q: "No me gusta el golf. (+)", options: ["A mí sí", "A mí también", "Yo sí"], correct: "A mí sí", type: "gustar_disagree" },
+        ];
+
+        const QUIZ_GUSTAR_DATA = [
+            { q: "(Ja) A mí ___ gusta el cine.", options: ["me", "te", "le"], correct: "me" },
+            { q: "(My) A nosotros ___ encanta viajar.", options: ["nos", "os", "les"], correct: "nos" },
+            { q: "Me _______ las películas de terror.", options: ["gusta", "gustan", "gustas"], correct: "gustan" },
+            { q: "Te _______ mucho el fútbol.", options: ["interesa", "interesan", "intereso"], correct: "interesa" },
+            { q: "A Juan (on) ___ gusta leer.", options: ["le", "se", "te"], correct: "le" },
+            { q: "Nos _______ los videojuegos.", options: ["encanta", "encantan", "encantamos"], correct: "encantan" },
+            { q: "A ellos ___ interesan los museos.", options: ["les", "los", "os"], correct: "les" },
+            { q: "Me _______ escuchar música.", options: ["gusta", "gustan", "gusto"], correct: "gusta" },
+        ];
+
+        const QUIZ_COLLOCATIONS_DATA = [
+            { q: "Quiero _______ una mesa para dos.", options: ["hacer", "reservar", "salir"], correct: "reservar" },
+            { q: "Voy a _______ la maleta ahora.", options: ["hacer", "tener", "pedir"], correct: "hacer" },
+            { q: "Camarero, quiero _______ la cuenta.", options: ["pedir", "hacer", "reservar"], correct: "pedir" },
+            { q: "Me gusta _______ deporte.", options: ["hacer", "jugar", "ir"], correct: "hacer" },
+            { q: "Vamos a _______ de copas esta noche.", options: ["salir", "andar", "pasear"], correct: "salir" },
+            { q: "Tengo que _______ una foto.", options: ["hacer", "reservar", "pedir"], correct: "hacer" },
+            { q: "Quiero _______ información sobre el hotel.", options: ["pedir", "reservar", "salir"], correct: "pedir" },
+            { q: "¿Podemos _______ un billete de avión?", options: ["reservar", "hacer", "salir"], correct: "reservar" },
+            { q: "Mañana voy a _______ turismo por la ciudad.", options: ["hacer", "salir", "pedir"], correct: "hacer" },
+            { q: "¿Te gusta _______ al fútbol?", options: ["jugar", "hacer", "tocar"], correct: "jugar" },
+            { q: "Voy a _______ el desayuno a la habitación.", options: ["pedir", "reservar", "salir"], correct: "pedir" },
+        ];
+
+        const HOTEL_SCENARIOS = [
+            { 
+                context: "Klient chce zarezerwować pokój na dwie osoby.",
+                receptionist: "¿Individual o doble?",
+                options: ["Doble, por favor.", "Individual, gracias.", "Una mesa para dos."],
+                correct: "Doble, por favor."
+            },
+            { 
+                context: "Zgłaszasz problem: W pokoju jest brudno.",
+                client: "Oiga, la habitación...",
+                options: ["no funciona.", "está sucia.", "no hay toallas."],
+                correct: "está sucia."
+            },
+            { 
+                context: "Recepcjonista pyta o wyżywienie.",
+                receptionist: "¿Con desayuno incluido?",
+                options: ["Sí, ¿cuánto cuesta?", "Sí, quiero una reserva.", "No, no funciona."],
+                correct: "Sí, ¿cuánto cuesta?"
+            },
+            { 
+                context: "Zgłaszasz problem: Klimatyzacja nie działa.",
+                client: "Mire, es que el aire acondicionado...",
+                options: ["está sucio.", "no hay.", "no funciona."],
+                correct: "no funciona."
+            },
+            { 
+                context: "Recepcjonista reaguje na problem.",
+                receptionist: "Lo siento mucho.",
+                options: ["Ahora mismo sube el servicio técnico.", "Gracias, adiós.", "Quiero reservar."],
+                correct: "Ahora mismo sube el servicio técnico."
+            },
+            { 
+                context: "Zgłaszasz problem: Nie ma ciepłej wody.",
+                client: "Perdone, en mi habitación...",
+                options: ["no hay agua caliente.", "falta la luz.", "hay mucho ruido."],
+                correct: "no hay agua caliente."
+            },
+        ];
+
+        const specialChars = ['á', 'é', 'í', 'ñ', 'ó', 'ú', 'ü', '¿', '¡'];
+
+        // --- KOMPONENTY ---
+
+        const Flashcards = ({ onBack, learnedCards, onMarkLearned, onViewLearned, onUnlearn }) => {
+            const [deck, setDeck] = useState([]);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [isFlipped, setIsFlipped] = useState(false);
+            const [selectedCategories, setSelectedCategories] = useState(['Kino (Z materiałów)']);
+            const [mode, setMode] = useState('standard');
+            const [direction, setDirection] = useState('es_pl');
+            const [inputValue, setInputValue] = useState('');
+            const [feedback, setFeedback] = useState(null);
+
+            const allCategories = Array.from(new Set(FLASHCARDS_DATA.map(c => c.category)));
+
+            useEffect(() => {
+                let filtered = FLASHCARDS_DATA.filter(c => !learnedCards.includes(c.id));
+                
+                if (!selectedCategories.includes('Wszystkie')) {
+                    filtered = filtered.filter(c => selectedCategories.includes(c.category));
+                }
+                
+                setDeck(filtered.sort(() => Math.random() - 0.5));
+                setCurrentIndex(0);
+                setIsFlipped(false);
+                setFeedback(null);
+                setInputValue('');
+            }, [selectedCategories, learnedCards]);
+
+            const toggleCategory = (cat) => {
+                if (cat === 'Wszystkie') {
+                    setSelectedCategories(['Wszystkie']);
+                    return;
+                }
+                setSelectedCategories(prev => {
+                    let newCats = prev.includes('Wszystkie') ? [] : [...prev];
+                    if (newCats.includes(cat)) {
+                        newCats = newCats.filter(c => c !== cat);
+                    } else {
+                        newCats.push(cat);
+                    }
+                    return newCats.length === 0 ? ['Wszystkie'] : newCats;
+                });
+            };
+
+            const handleMarkLearned = () => {
+                if (deck.length > 0) {
+                    onMarkLearned(deck[currentIndex].id);
+                }
+            };
+
+            const nextCard = () => {
+                setIsFlipped(false);
+                setFeedback(null);
+                setInputValue('');
+                setTimeout(() => setCurrentIndex((prev) => (prev + 1) % deck.length), 150);
+            };
+
+            const checkAnswer = (e) => {
+                if (e) e.preventDefault();
+                const current = deck[currentIndex];
+                const correct = direction === 'es_pl' ? current.back : current.front;
+                
+                const normUser = inputValue.toLowerCase().trim();
+                const normCorrect = correct.toLowerCase().trim();
+                
+                const isCorrect = normUser === normCorrect || (normCorrect.length > 8 && normCorrect.includes(normUser) && normUser.length > 4);
+
+                if (isCorrect) setFeedback('correct');
+                else setFeedback('incorrect');
+                setIsFlipped(true); 
+            };
+
+            const insertChar = (char) => setInputValue(prev => prev + char);
+
+            const getCategoryCount = (cat) => {
+                if (cat === 'Wszystkie') {
+                    return FLASHCARDS_DATA.filter(c => !learnedCards.includes(c.id)).length;
+                }
+                return FLASHCARDS_DATA.filter(c => c.category === cat && !learnedCards.includes(c.id)).length;
+            };
+
+            if (deck.length === 0) {
+                return React.createElement('div', {className: "flex flex-col items-center justify-center h-full p-6 text-center"},
+                    React.createElement(Trophy, {size: 64, className: "text-yellow-500 mb-4 animate-bounce"}),
+                    React.createElement('h2', {className: "text-2xl font-bold text-white mb-2"}, "Gratulacje!"),
+                    React.createElement('p', {className: "text-gray-400 mb-6"}, "Przerobiłeś wszystkie karty z wybranych kategorii."),
+                    React.createElement('button', {onClick: onBack, className: "bg-gray-800 text-white px-6 py-3 rounded-xl mb-4 border border-gray-700"}, "Wróć do menu"),
+                    React.createElement('div', {className: "flex flex-wrap gap-2 justify-center"},
+                        allCategories.map(cat => (
+                            React.createElement('button', {key: cat, onClick: () => toggleCategory(cat), className: "text-xs bg-gray-900 border border-gray-700 px-2 py-1 rounded text-gray-500"},
+                                `${cat} (${getCategoryCount(cat)})`
+                            )
+                        ))
+                    )
+                );
+            }
+
+            const currentCard = deck[currentIndex];
+            const frontText = direction === 'es_pl' ? currentCard.front : currentCard.back;
+            const backText = direction === 'es_pl' ? currentCard.back : currentCard.front;
+
+            return React.createElement('div', {className: "flex flex-col items-center p-4 w-full max-w-md mx-auto h-full"},
+                React.createElement('div', {className: "flex justify-between w-full mb-4 items-center"},
+                    React.createElement('button', {onClick: onBack, className: "text-gray-400 hover:text-white"}, React.createElement(ArrowLeft)),
+                    React.createElement('div', {className: "text-center"},
+                        React.createElement('h2', {className: "text-orange-500 font-bold text-xl"}, "Fiszki"),
+                        React.createElement('p', {className: "text-[10px] text-gray-500"}, `Karta ${currentIndex + 1} z ${deck.length}`)
+                    ),
+                    React.createElement('button', {
+                        onClick: onViewLearned,
+                        className: "flex items-center gap-1 text-xs text-green-500 font-bold border border-green-500/30 px-2 py-1 rounded bg-green-500/10 hover:bg-green-500/20 transition",
+                        title: "Zobacz nauczone"
+                    }, React.createElement(Eye, {size: 12}), ` ${learnedCards.length}`)
+                ),
+
+                React.createElement('div', {className: "flex flex-wrap gap-2 w-full justify-center mb-6"},
+                    React.createElement('button', {
+                        onClick: () => toggleCategory('Wszystkie'),
+                        className: `px-3 py-1.5 rounded-full text-xs font-bold transition border ${selectedCategories.includes('Wszystkie') ? 'bg-orange-600 text-white border-orange-500' : 'bg-gray-800 text-gray-400 border-gray-700'}`
+                    }, `Wszystkie (${getCategoryCount('Wszystkie')})`),
+                    allCategories.map(cat => (
+                        React.createElement('button', {
+                            key: cat, onClick: () => toggleCategory(cat),
+                            className: `px-3 py-1.5 rounded-full text-xs font-bold transition border ${selectedCategories.includes(cat) && !selectedCategories.includes('Wszystkie') ? 'bg-orange-600 text-white border-orange-500' : 'bg-gray-800 text-gray-400 border-gray-700'}`
+                        }, `${cat} (${getCategoryCount(cat)})`)
+                    ))
+                ),
+
+                React.createElement('div', {className: "w-full max-w-md flex gap-2 mb-6"},
+                    React.createElement('button', {
+                        onClick: () => { setMode(mode === 'standard' ? 'writing' : 'standard'); setIsFlipped(false); setFeedback(null); },
+                        className: "flex-1 bg-gray-900 border border-gray-800 py-2 rounded-lg text-xs font-bold text-gray-400 flex justify-center items-center gap-2 hover:bg-gray-800 transition"
+                    }, mode === 'standard' ? React.createElement(Repeat, {size: 14}) : React.createElement(Keyboard, {size: 14}), mode === 'standard' ? "Tryb: Klasyczny" : "Tryb: Pisanie"),
+                    React.createElement('button', {
+                        onClick: () => { setDirection(direction === 'es_pl' ? 'pl_es' : 'es_pl'); setIsFlipped(false); },
+                        className: "flex-1 bg-gray-900 border border-gray-800 py-2 rounded-lg text-xs font-bold text-gray-400 flex justify-center items-center gap-2 hover:bg-gray-800 transition"
+                    }, React.createElement(ArrowLeftRight, {size: 14}), direction === 'es_pl' ? "ES → PL" : "PL → ES")
+                ),
+
+                React.createElement('div', {
+                    onClick: () => mode === 'standard' && setIsFlipped(!isFlipped),
+                    className: "w-full h-64 relative perspective-1000 cursor-pointer group mb-4"
+                }, 
+                    React.createElement('div', {
+                        className: "w-full h-full transition-all duration-500 preserve-3d",
+                        style: { transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }
+                    },
+                        // Front
+                        React.createElement('div', {
+                            className: "absolute w-full h-full bg-gray-800 rounded-2xl p-6 flex flex-col items-center justify-center backface-hidden border-b-4 border-orange-600 shadow-2xl",
+                            style: { backfaceVisibility: 'hidden' }
+                        },
+                            React.createElement('span', {className: "absolute top-4 left-4 text-[10px] font-bold text-orange-500 bg-orange-900/20 px-2 py-1 rounded uppercase tracking-wider"}, currentCard.category),
+                            React.createElement('h3', {className: "text-3xl font-bold text-center text-white drop-shadow-md leading-tight"}, frontText),
+                            mode === 'standard' && React.createElement('p', {className: "text-xs text-gray-500 mt-6 animate-pulse"}, "(Kliknij, aby odwrócić)")
+                        ),
+                        // Back
+                        React.createElement('div', {
+                            className: `absolute w-full h-full bg-gray-800 rounded-2xl p-6 flex flex-col items-center justify-center backface-hidden border-b-4 shadow-2xl ${feedback === 'incorrect' ? 'border-red-600' : 'border-orange-600'}`,
+                            style: { backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }
+                        },
+                            feedback && React.createElement('div', {
+                                className: `mb-4 px-3 py-1 rounded-full text-xs font-bold ${feedback === 'correct' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`
+                            }, feedback === 'correct' ? 'Świetnie!' : 'Prawie...'),
+                            React.createElement('h3', {className: "text-2xl font-bold text-center text-orange-400 leading-tight"}, backText),
+                            mode === 'writing' && feedback === 'incorrect' && React.createElement('div', {className: "mt-4 text-center"},
+                                React.createElement('p', {className: "text-xs text-gray-500 uppercase"}, "Twoja odpowiedź:"),
+                                React.createElement('p', {className: "text-red-400 line-through text-lg"}, inputValue)
+                            )
+                        )
+                    )
+                ),
+
+                mode === 'writing' && React.createElement('div', {className: "w-full max-w-md mb-6 animate-in slide-in-from-bottom-2"},
+                    !isFlipped ? (
+                        React.createElement('form', {onSubmit: checkAnswer, className: "flex flex-col gap-2"},
+                            React.createElement('input', {
+                                type: "text",
+                                value: inputValue,
+                                onChange: (e) => setInputValue(e.target.value),
+                                placeholder: "Wpisz tłumaczenie...",
+                                className: "w-full p-4 bg-gray-900 border border-gray-700 rounded-xl text-center text-white placeholder-gray-600 focus:ring-2 focus:ring-orange-500 outline-none text-lg",
+                                autoFocus: true
+                            }),
+                            React.createElement('div', {className: "flex justify-center gap-2"},
+                                specialChars.map(char => (
+                                    React.createElement('button', {
+                                        type: "button", key: char, onClick: () => insertChar(char),
+                                        className: "w-8 h-8 bg-gray-800 rounded text-gray-300 hover:text-white hover:bg-gray-700 text-sm font-bold border border-gray-700"
+                                    }, char)
+                                ))
+                            ),
+                            React.createElement('button', {type: "submit", className: "w-full py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-500 shadow-lg mt-2 transition"}, "Sprawdź")
+                        )
+                    ) : (
+                        React.createElement('div', {className: "flex flex-col gap-2"},
+                            feedback === 'correct' && React.createElement('button', {
+                                onClick: handleMarkLearned,
+                                className: "w-full py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-500 shadow-lg flex items-center justify-center gap-2 transform active:scale-95 transition"
+                            }, React.createElement(Check, {size: 20}), "Umiem to! (Usuń)"),
+                            React.createElement('button', {
+                                onClick: nextCard,
+                                className: "w-full py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-700 border border-gray-700 transition"
+                            }, "Następna karta")
+                        )
+                    )
+                ),
+
+                mode === 'standard' && React.createElement('div', {className: "w-full max-w-md flex flex-col gap-3"},
+                    React.createElement('button', {
+                        onClick: handleMarkLearned,
+                        className: "w-full py-4 bg-green-600 rounded-xl text-white font-bold hover:bg-green-500 shadow-lg flex items-center justify-center gap-2 transform active:scale-95 transition"
+                    }, React.createElement(Check, {size: 20}), "Umiem to! (Usuń z talii)"),
+                    
+                    React.createElement('div', {className: "flex gap-3"},
+                        React.createElement('button', {
+                            onClick: () => { setIsFlipped(false); setDeck([...deck].sort(() => Math.random() - 0.5)); setCurrentIndex(0); },
+                            className: "flex-1 py-3 bg-gray-800 rounded-xl text-gray-400 font-bold hover:bg-gray-700 flex justify-center items-center gap-2 border border-gray-700"
+                        }, React.createElement(Shuffle, {size: 18}), "Tasuj"),
+                        React.createElement('button', {
+                            onClick: nextCard,
+                            className: "flex-1 py-3 bg-gray-800 rounded-xl text-white font-bold hover:bg-gray-700 border border-gray-700"
+                        }, "Dalej")
+                    )
+                )
+            );
+        };
+
+        const LearnedList = ({ learnedCards, onBack, onUnlearn }) => {
+            const learnedItems = FLASHCARDS_DATA.filter(c => learnedCards.includes(c.id));
+
+            return React.createElement('div', {className: "flex flex-col h-full p-4 max-w-md mx-auto"},
+                React.createElement('div', {className: "flex justify-between items-center mb-6"},
+                    React.createElement('button', {onClick: onBack, className: "text-gray-400 hover:text-white flex items-center gap-1"}, React.createElement(ArrowLeft, {size: 18}), "Wróć"),
+                    React.createElement('span', {className: "text-green-500 font-bold"}, `Nauczone (${learnedItems.length})`),
+                    React.createElement('div', {className: "w-10"})
+                ),
+                
+                React.createElement('div', {className: "flex-1 overflow-y-auto pb-4"},
+                    learnedItems.length === 0 ? (
+                        React.createElement('p', {className: "text-center text-gray-500 mt-10"}, "Pusto. Zaznacz 'Umiem to!' podczas nauki.")
+                    ) : (
+                        React.createElement('div', {className: "space-y-2"},
+                            learnedItems.map(item => (
+                                React.createElement('div', {key: item.id, className: "bg-gray-900 border border-gray-800 p-4 rounded-xl flex justify-between items-center"},
+                                    React.createElement('div', {},
+                                        React.createElement('p', {className: "text-white font-bold"}, item.front),
+                                        React.createElement('p', {className: "text-gray-400 text-sm"}, item.back)
+                                    ),
+                                    React.createElement('button', {onClick: () => onUnlearn(item.id), className: "p-2 bg-gray-800 text-gray-500 hover:text-white rounded-lg", title: "Przywróć do nauki"},
+                                        React.createElement(RotateCcw, {size: 16})
+                                    )
+                                )
+                            ))
+                        )
+                    )
+                )
+            );
+        };
+
+        const GenericQuiz = ({ title, data, onBack }) => {
+            const [current, setCurrent] = useState(0);
+            const [score, setScore] = useState(0);
+            const [finished, setFinished] = useState(false);
+            const [feedback, setFeedback] = useState(null);
+
+            const handleAnswer = (opt) => {
+                if (opt === data[current].correct) {
+                    setScore(score + 1);
+                    setFeedback('correct');
+                } else {
+                    setFeedback('wrong');
+                }
+                
+                setTimeout(() => {
+                    setFeedback(null);
+                    if (current < data.length - 1) {
+                        setCurrent(current + 1);
+                    } else {
+                        setFinished(true);
+                    }
+                }, 1500);
+            };
+
+            const restart = () => { setCurrent(0); setScore(0); setFinished(false); };
+
+            if (finished) {
+                return React.createElement('div', {className: "flex flex-col items-center justify-center h-full p-6 text-center"},
+                    React.createElement(Trophy, {size: 64, className: "text-yellow-500 mb-4"}),
+                    React.createElement('h2', {className: "text-3xl font-bold text-white mb-2"}, "Koniec!"),
+                    React.createElement('p', {className: "text-gray-400 mb-6"}, `Twój wynik: ${score} / ${data.length}`),
+                    React.createElement('button', {onClick: restart, className: "bg-orange-600 text-white px-6 py-3 rounded-xl font-bold mb-4 w-full"}, "Zagraj ponownie"),
+                    React.createElement('button', {onClick: onBack, className: "text-gray-500 hover:text-white"}, "Wróć do menu")
+                );
+            }
+
+            const q = data[current];
+
+            return React.createElement('div', {className: "flex flex-col h-full p-4 max-w-md mx-auto"},
+                React.createElement('div', {className: "flex justify-between items-center mb-6"},
+                    React.createElement('button', {onClick: onBack, className: "text-gray-400"}, React.createElement(ArrowLeft)),
+                    React.createElement('span', {className: "text-orange-500 font-bold"}, title),
+                    React.createElement('span', {className: "text-gray-500 text-sm"}, `${current + 1}/${data.length}`)
+                ),
+
+                React.createElement('div', {className: "flex-1 flex flex-col justify-center"},
+                    React.createElement('h3', {className: "text-xl font-bold text-white text-center mb-8 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg"},
+                        q.q,
+                        q.type === 'gustar' && React.createElement('span', {className: "block text-xs text-blue-400 mt-2 font-normal"}, "(Czasownik GUSTAR)"),
+                        q.type === 'normal' && React.createElement('span', {className: "block text-xs text-green-400 mt-2 font-normal"}, "(Czasownik ZWYKŁY)")
+                    ),
+
+                    React.createElement('div', {className: "space-y-3"},
+                        q.options.map((opt) => {
+                            let btnClass = "w-full py-4 bg-gray-800 text-gray-200 font-bold rounded-xl border border-gray-700 hover:bg-gray-700 transition";
+                            if (feedback === 'correct' && opt === q.correct) btnClass = "w-full py-4 bg-green-600 text-white font-bold rounded-xl border border-green-500 shadow-lg scale-105";
+                            if (feedback === 'wrong' && opt === q.correct) btnClass = "w-full py-4 bg-green-600 text-white font-bold rounded-xl border border-green-500 opacity-50"; 
+                            if (feedback === 'wrong' && opt !== q.correct) btnClass = "w-full py-4 bg-red-900/50 text-red-200 font-bold rounded-xl border border-red-800";
+
+                            return React.createElement('button', {
+                                key: opt,
+                                onClick: () => !feedback && handleAnswer(opt),
+                                disabled: !!feedback,
+                                className: btnClass
+                            }, opt)
+                        })
+                    )
+                ),
+                
+                feedback && React.createElement('div', {className: `mt-4 text-center font-bold animate-pulse ${feedback === 'correct' ? 'text-green-500' : 'text-red-500'}`},
+                    feedback === 'correct' ? 'Dobrze!' : 'Źle!'
+                )
+            );
+        };
+
+        const HotelSimulator = ({ onBack }) => {
+            const [current, setCurrent] = useState(0);
+            const [finished, setFinished] = useState(false);
+            const [feedback, setFeedback] = useState(null);
+
+            const scenario = HOTEL_SCENARIOS[current];
+
+            const handleChoice = (opt) => {
+                const isCorrect = opt === scenario.correct;
+                setFeedback(isCorrect ? 'correct' : 'wrong');
+                setTimeout(() => {
+                    setFeedback(null);
+                    if (current < HOTEL_SCENARIOS.length - 1) setCurrent(current + 1);
+                    else setFinished(true);
+                }, 1500);
+            };
+
+            if (finished) return React.createElement('div', {className: "flex flex-col items-center justify-center h-full p-6 text-center"},
+                React.createElement(Hotel, {size: 64, className: "text-teal-500 mb-4"}),
+                React.createElement('h2', {className: "text-2xl font-bold text-white mb-4"}, "Symulacja Zakończona"),
+                React.createElement('button', {onClick: onBack, className: "bg-gray-800 text-white px-6 py-3 rounded-xl"}, "Wróć do menu")
+            );
+
+            return React.createElement('div', {className: "flex flex-col h-full p-4 max-w-md mx-auto"},
+                React.createElement('div', {className: "flex justify-between items-center mb-6"},
+                    React.createElement('button', {onClick: onBack, className: "text-gray-400"}, React.createElement(ArrowLeft)),
+                    React.createElement('span', {className: "text-teal-500 font-bold"}, "Symulator Hotelu")
+                ),
+
+                React.createElement('div', {className: "flex-1"},
+                    React.createElement('div', {className: "bg-gray-800/50 p-4 rounded-xl mb-6 border border-teal-500/30"},
+                        React.createElement('p', {className: "text-xs text-teal-400 uppercase font-bold mb-1"}, "Sytuacja:"),
+                        React.createElement('p', {className: "text-gray-300 italic"}, scenario.context)
+                    ),
+
+                    scenario.receptionist && React.createElement('div', {className: "mb-4 flex flex-col items-start"},
+                        React.createElement('span', {className: "text-xs text-gray-500 mb-1 ml-1"}, "Recepcja"),
+                        React.createElement('div', {className: "bg-gray-700 text-white p-4 rounded-2xl rounded-tl-none max-w-[85%]"},
+                            scenario.receptionist
+                        )
+                    ),
+
+                    scenario.client && React.createElement('div', {className: "mb-4 flex flex-col items-end"},
+                        React.createElement('span', {className: "text-xs text-gray-500 mb-1 mr-1"}, "Klient (Ty)"),
+                        React.createElement('div', {className: "bg-teal-900/50 text-teal-100 p-4 rounded-2xl rounded-tr-none max-w-[85%] text-right"},
+                            scenario.client
+                        )
+                    ),
+
+                    React.createElement('div', {className: "space-y-3 mt-8"},
+                        React.createElement('p', {className: "text-center text-sm text-gray-500 mb-2"}, "Wybierz reakcję:"),
+                        scenario.options.map((opt) => (
+                            React.createElement('button', {
+                                key: opt,
+                                onClick: () => !feedback && handleChoice(opt),
+                                className: `w-full p-4 rounded-xl text-left font-medium transition border ${
+                                    feedback === 'correct' && opt === scenario.correct ? 'bg-green-600 border-green-500 text-white' :
+                                    feedback === 'wrong' && opt !== scenario.correct ? 'bg-gray-800 border-gray-700 text-gray-500' : 
+                                    feedback === 'wrong' && opt === scenario.correct ? 'bg-green-900/50 border-green-500 text-green-200' : 
+                                    'bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500'
+                                }`
+                            }, opt)
+                        ))
+                    )
+                )
+            );
+        };
+
+        const SpanishApp = () => {
+            const [view, setView] = useState('menu');
+            const [learnedCards, setLearnedCards] = useState([]);
+
+            // Load learned cards from local storage if available (optional enhancement)
+            // For now, simple state
+            
+            const handleMarkLearned = (id) => {
+                setLearnedCards(prev => [...prev, id]);
+            };
+
+            const handleUnlearn = (id) => {
+                setLearnedCards(prev => prev.filter(c => c !== id));
+            };
+
+            const resetLearned = () => {
+                if(confirm("Czy na pewno chcesz zresetować wszystkie nauczone słówka?")) {
+                    setLearnedCards([]);
+                }
+            };
+
+            if (view === 'menu') {
+                return React.createElement('div', {className: "min-h-screen bg-gray-950 text-white p-6 font-sans flex flex-col items-center"},
+                    React.createElement('header', {className: "w-full max-w-md mb-8 mt-4 text-center"},
+                        React.createElement('div', {className: "inline-block p-4 bg-gradient-to-br from-orange-600 to-red-600 rounded-full mb-4 shadow-lg shadow-orange-900/50"},
+                            React.createElement(Briefcase, {size: 40, className: "text-white"})
+                        ),
+                        React.createElement('h1', {className: "text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500 mb-2"}, "Hiszpański: Kolokwium"),
+                        React.createElement('p', {className: "text-gray-500 text-sm mb-4"}, "Wybierz tryb nauki"),
+                        
+                        learnedCards.length > 0 && React.createElement('div', {className: "inline-flex items-center gap-2 bg-gray-900 border border-green-900/30 px-4 py-2 rounded-full"},
+                            React.createElement('span', {className: "text-green-500 font-bold text-sm"}, `Nauczono: ${learnedCards.length}`),
+                            React.createElement('button', {onClick: () => setView('learned_list'), className: "text-gray-400 hover:text-white ml-2"}, React.createElement(Eye, {size: 16})),
+                            React.createElement('button', {onClick: resetLearned, className: "text-gray-400 hover:text-red-400 ml-1", title: "Resetuj postęp"}, React.createElement(RotateCcw, {size: 16}))
+                        )
+                    ),
+
+                    React.createElement('div', {className: "w-full max-w-md grid gap-4"},
+                        React.createElement('button', {onClick: () => setView('flashcards'), className: "flex items-center p-5 bg-gray-900 rounded-2xl border border-gray-800 hover:border-orange-500 transition group shadow-md transform hover:scale-[1.02]"},
+                            React.createElement('div', {className: "bg-orange-900/30 p-3 rounded-xl mr-4 group-hover:bg-orange-600 group-hover:text-white text-orange-500 transition"}, React.createElement(Layers)),
+                            React.createElement('div', {className: "text-left"},
+                                React.createElement('h3', {className: "font-bold text-lg text-gray-200 group-hover:text-white"}, "Fiszki (Słówka)"),
+                                React.createElement('p', {className: "text-xs text-gray-500"}, "Wszystkie działy + Hotel + Czas wolny")
+                            )
+                        ),
+                        React.createElement('button', {onClick: () => setView('quiz_agree'), className: "flex items-center p-5 bg-gray-900 rounded-2xl border border-gray-800 hover:border-blue-500 transition group shadow-md transform hover:scale-[1.02]"},
+                            React.createElement('div', {className: "bg-blue-900/30 p-3 rounded-xl mr-4 group-hover:bg-blue-600 group-hover:text-white text-blue-500 transition"}, React.createElement(MessageCircle)),
+                            React.createElement('div', {className: "text-left"},
+                                React.createElement('h3', {className: "font-bold text-lg text-gray-200 group-hover:text-white"}, "Quiz: También / Tampoco"),
+                                React.createElement('p', {className: "text-xs text-gray-500"}, "Krótkie odpowiedzi (Zgadzanie się)")
+                            )
+                        ),
+                        React.createElement('button', {onClick: () => setView('quiz_gustar'), className: "flex items-center p-5 bg-gray-900 rounded-2xl border border-gray-800 hover:border-pink-500 transition group shadow-md transform hover:scale-[1.02]"},
+                            React.createElement('div', {className: "bg-pink-900/30 p-3 rounded-xl mr-4 group-hover:bg-pink-600 group-hover:text-white text-pink-500 transition"}, React.createElement(Heart)),
+                            React.createElement('div', {className: "text-left"},
+                                React.createElement('h3', {className: "font-bold text-lg text-gray-200 group-hover:text-white"}, "Quiz: Gustar & Encantar"),
+                                React.createElement('p', {className: "text-xs text-gray-500"}, "Odmiana: me/te/le + gusta/an")
+                            )
+                        ),
+                        React.createElement('button', {onClick: () => setView('hotel'), className: "flex items-center p-5 bg-gray-900 rounded-2xl border border-gray-800 hover:border-teal-500 transition group shadow-md transform hover:scale-[1.02]"},
+                            React.createElement('div', {className: "bg-teal-900/30 p-3 rounded-xl mr-4 group-hover:bg-teal-600 group-hover:text-white text-teal-500 transition"}, React.createElement(Hotel)),
+                            React.createElement('div', {className: "text-left"},
+                                React.createElement('h3', {className: "font-bold text-lg text-gray-200 group-hover:text-white"}, "Symulator Hotelu"),
+                                React.createElement('p', {className: "text-xs text-gray-500"}, "Rezerwacje i Problemy (Dialogi)")
+                            )
+                        ),
+                        React.createElement('button', {onClick: () => setView('collocations'), className: "flex items-center p-5 bg-gray-900 rounded-2xl border border-gray-800 hover:border-yellow-500 transition group shadow-md transform hover:scale-[1.02]"},
+                            React.createElement('div', {className: "bg-yellow-900/30 p-3 rounded-xl mr-4 group-hover:bg-yellow-600 group-hover:text-white text-yellow-500 transition"}, React.createElement(Check)),
+                            React.createElement('div', {className: "text-left"},
+                                React.createElement('h3', {className: "font-bold text-lg text-gray-200 group-hover:text-white"}, "Kolokacje (Zadanie 7)"),
+                                React.createElement('p', {className: "text-xs text-gray-500"}, "Reservar, Hacer, Pedir, Salir")
+                            )
+                        )
+                    )
+                );
+            }
+
+            return React.createElement('div', {className: "min-h-screen bg-gray-950 text-white font-sans"},
+                view === 'flashcards' && React.createElement(Flashcards, {onBack: () => setView('menu'), learnedCards, onMarkLearned: handleMarkLearned, onViewLearned: () => setView('learned_list'), onUnlearn: handleUnlearn}),
+                view === 'learned_list' && React.createElement(LearnedList, {onBack: () => setView('menu'), learnedCards, onUnlearn: handleUnlearn}),
+                view === 'quiz_agree' && React.createElement(GenericQuiz, {title: "Quiz: También / Tampoco", data: QUIZ_AGREEMENT_DATA, onBack: () => setView('menu')}),
+                view === 'quiz_gustar' && React.createElement(GenericQuiz, {title: "Quiz: Gustar", data: QUIZ_GUSTAR_DATA, onBack: () => setView('menu')}),
+                view === 'collocations' && React.createElement(GenericQuiz, {title: "Kolokacje (ABC)", data: QUIZ_COLLOCATIONS_DATA, onBack: () => setView('menu')}),
+                view === 'hotel' && React.createElement(HotelSimulator, {onBack: () => setView('menu')})
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(SpanishApp));
+    </script>
+</body>
+</html>
