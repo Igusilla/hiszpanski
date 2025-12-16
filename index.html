@@ -232,10 +232,10 @@
             { q: "Me gusta mucho leer. (-)", options: ["A mí no", "A mí tampoco", "Yo no"], correct: "A mí no", type: "gustar_disagree" },
             { q: "No me gusta el golf. (+)", options: ["A mí sí", "A mí también", "Yo sí"], correct: "A mí sí", type: "gustar_disagree" },
             { q: "Tengo hambre. (+)", options: ["Yo también", "A mí también", "Yo no"], correct: "Yo también", type: "normal" },
-            { q: "Vivo en Madrid. (+)", options: ["Yo también", "A mí też", "Yo no"], correct: "Yo también", type: "normal" },
-            { q: "Hablo inglés. (+)", options: ["Yo también", "A mí también", "Yo sí"], correct: "Yo también", type: "normal" },
-            { q: "Soy estudiante. (+)", options: ["Yo también", "A mí también", "A mí no"], correct: "Yo también", type: "normal" },
-            { q: "Trabajo en un banco. (+)", options: ["Yo también", "Yo no", "A mí también"], correct: "Yo también", type: "normal" },
+            { q: "Vivo en Madrid. (+)", options: ["Yo también", "A mí też", "Yo no"], correct: "Yo też", type: "normal" },
+            { q: "Hablo inglés. (+)", options: ["Yo también", "A mí también", "Yo sí"], correct: "Yo też", type: "normal" },
+            { q: "Soy estudiante. (+)", options: ["Yo también", "A mí también", "A mí no"], correct: "Yo też", type: "normal" },
+            { q: "Trabajo en un banco. (+)", options: ["Yo también", "Yo no", "A mí también"], correct: "Yo też", type: "normal" },
             { q: "No soy francés. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
             { q: "No trabajo los domingos. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo no"], correct: "Yo tampoco", type: "normal" },
             { q: "No tengo coche. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
@@ -707,11 +707,27 @@
 
                     React.createElement('div', {className: "space-y-3"},
                         q.options.map((opt) => {
-                            let btnClass = "w-full py-4 bg-gray-800 text-gray-200 font-bold rounded-xl border border-gray-700 hover:bg-gray-700 transition";
+                            let btnClass = "w-full p-4 rounded-xl text-left font-medium transition border ";
+                            
                             if (feedback) {
-                                if (opt === q.correct) btnClass = "w-full py-4 bg-green-600 text-white font-bold rounded-xl border border-green-500 shadow-lg scale-105";
-                                else if (opt === selectedOption && opt !== q.correct) btnClass = "w-full py-4 bg-red-900/50 text-red-200 font-bold rounded-xl border border-red-800 opacity-80";
-                                else btnClass = "w-full py-4 bg-gray-800 text-gray-500 font-bold rounded-xl border border-gray-700 opacity-50";
+                                if (opt === q.correct) {
+                                    if (opt === selectedOption) {
+                                        // Selected Correct (Bright Green)
+                                        btnClass += "bg-green-600 border-green-500 text-white shadow-lg scale-105";
+                                    } else {
+                                        // Not Selected Correct (Dark Green)
+                                        btnClass += "bg-green-800/80 border-green-600 text-green-100 opacity-90";
+                                    }
+                                } else if (opt === selectedOption && opt !== q.correct) {
+                                    // Selected Wrong (Red)
+                                    btnClass += "bg-red-900/50 border-red-500 text-red-200 opacity-80";
+                                } else {
+                                    // Not Selected Wrong (Dimmed)
+                                    btnClass += "bg-gray-800 border-gray-700 text-gray-500 opacity-40";
+                                }
+                            } else {
+                                // Default State
+                                btnClass += "bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500";
                             }
 
                             return React.createElement('button', {
@@ -831,14 +847,27 @@
                     React.createElement('div', {className: "space-y-3 mt-8"},
                         React.createElement('p', {className: "text-center text-sm text-gray-500 mb-2"}, "Wybierz reakcję:"),
                         currentOptions.map((opt) => {
-                            let btnClass = `w-full p-4 rounded-xl text-left font-medium transition border ${
-                                !feedback ? 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500' : ''
-                            }`;
+                            let btnClass = "w-full p-4 rounded-xl text-left font-medium transition border ";
                             
                             if (feedback) {
-                                if (opt === scenario.correct) btnClass = 'bg-green-600 border-green-500 text-white';
-                                else if (opt === selectedOption && opt !== scenario.correct) btnClass = 'bg-gray-800 border-red-500 text-red-400 opacity-80';
-                                else btnClass = 'bg-gray-800 border-gray-700 text-gray-500 opacity-50';
+                                if (opt === scenario.correct) {
+                                    if (opt === selectedOption) {
+                                        // Selected Correct
+                                        btnClass += "bg-green-600 border-green-500 text-white shadow-lg";
+                                    } else {
+                                        // Not Selected Correct (Darker Green)
+                                        btnClass += "bg-green-800/80 border-green-600 text-green-100 opacity-90";
+                                    }
+                                } else if (opt === selectedOption && opt !== scenario.correct) {
+                                    // Selected Wrong
+                                    btnClass += "bg-red-900/50 border-red-500 text-red-200 opacity-80";
+                                } else {
+                                    // Not Selected Wrong
+                                    btnClass += "bg-gray-800 border-gray-700 text-gray-500 opacity-40";
+                                }
+                            } else {
+                                // Default State
+                                btnClass += "bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500";
                             }
 
                             return React.createElement('button', {
