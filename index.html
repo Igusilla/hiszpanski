@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hiszpański: Kolokwium</title>
     
+    <!-- Konfiguracja Ikon dla Telefonów i Przeglądarek -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇪🇸</text></svg>">
+    <link rel="apple-touch-icon" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/es.svg">
+    <meta name="theme-color" content="#030712">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -20,13 +27,11 @@
     </script>
     
     <style>
-        body { background-color: #030712; color: #e5e7eb; font-family: sans-serif; }
+        body { background-color: #030712; color: #e5e7eb; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
         .perspective-1000 { perspective: 1000px; }
         .preserve-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
-        
-        /* Ukrywanie paska przewijania */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -41,8 +46,18 @@
             ArrowLeft, Shuffle, RotateCcw, Layers, Check, X, 
             MessageCircle, Heart, Briefcase, Hotel, 
             Play, Trophy, Star, Eye, EyeOff, Repeat, Keyboard, ArrowLeftRight,
-            Loader2, Sparkles, Volume2
+            Loader2, Sparkles, Volume2, ListChecks, Lightbulb
         } from 'lucide-react';
+
+        // --- POMOCNICZA FUNKCJA DO TASOWANIA ---
+        const shuffleArray = (array) => {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        };
 
         // --- BAZA DANYCH ---
         const FLASHCARDS_DATA = [
@@ -207,7 +222,7 @@
         ];
 
         // --- QUIZ DATA ---
-        const QUIZ_AGREEMENT_DATA = [
+        const QUIZ_AGREEMENT_DATA_FULL = [
             { q: "Me gusta el fútbol. (+)", options: ["A mí también", "A mí no", "Yo también"], correct: "A mí también", type: "gustar" },
             { q: "No me interesa la política. (-)", options: ["A mí tampoco", "A mí sí", "Yo tampoco"], correct: "A mí tampoco", type: "gustar" },
             { q: "Tengo hambre. (+)", options: ["Yo también", "A mí también", "Yo no"], correct: "Yo también", type: "normal" },
@@ -216,22 +231,46 @@
             { q: "No trabajo los domingos. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo no"], correct: "Yo tampoco", type: "normal" },
             { q: "Me gusta mucho leer. (-)", options: ["A mí no", "A mí tampoco", "Yo no"], correct: "A mí no", type: "gustar_disagree" },
             { q: "No me gusta el golf. (+)", options: ["A mí sí", "A mí también", "Yo sí"], correct: "A mí sí", type: "gustar_disagree" },
+            { q: "Tengo hambre. (+)", options: ["Yo también", "A mí también", "Yo no"], correct: "Yo también", type: "normal" },
+            { q: "Vivo en Madrid. (+)", options: ["Yo también", "A mí też", "Yo no"], correct: "Yo también", type: "normal" },
+            { q: "Hablo inglés. (+)", options: ["Yo también", "A mí también", "Yo sí"], correct: "Yo también", type: "normal" },
+            { q: "Soy estudiante. (+)", options: ["Yo también", "A mí también", "A mí no"], correct: "Yo también", type: "normal" },
+            { q: "Trabajo en un banco. (+)", options: ["Yo también", "Yo no", "A mí también"], correct: "Yo también", type: "normal" },
+            { q: "No soy francés. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
+            { q: "No trabajo los domingos. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo no"], correct: "Yo tampoco", type: "normal" },
+            { q: "No tengo coche. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
+            { q: "No vivo aquí. (-)", options: ["Yo tampoco", "Yo no", "A mí tampoco"], correct: "Yo tampoco", type: "normal" },
+            { q: "Estudio mucho. (-)", options: ["Yo no", "Yo tampoco", "A mí no"], correct: "Yo no", type: "normal_disagree" },
+            { q: "No como carne. (+)", options: ["Yo sí", "Yo también", "A mí sí"], correct: "Yo sí", type: "normal_disagree" }
         ];
 
-        const QUIZ_GUSTAR_DATA = [
+        const QUIZ_GUSTAR_DATA_FULL = [
             { q: "(Ja) A mí ___ gusta el cine.", options: ["me", "te", "le"], correct: "me" },
-            { q: "(My) A nosotros ___ encanta viajar.", options: ["nos", "os", "les"], correct: "nos" },
-            { q: "Me _______ las películas de terror.", options: ["gusta", "gustan", "gustas"], correct: "gustan" },
-            { q: "Te _______ mucho el fútbol.", options: ["interesa", "interesan", "intereso"], correct: "interesa" },
+            { q: "(Ty) ¿A ti ___ gusta el fútbol?", options: ["te", "le", "me"], correct: "te" },
             { q: "A Juan (on) ___ gusta leer.", options: ["le", "se", "te"], correct: "le" },
-            { q: "Nos _______ los videojuegos.", options: ["encanta", "encantan", "encantamos"], correct: "encantan" },
-            { q: "A ellos ___ interesan los museos.", options: ["les", "los", "os"], correct: "les" },
+            { q: "A María (ona) ___ encanta la música.", options: ["le", "la", "se"], correct: "le" },
+            { q: "(My) A nosotros ___ encanta viajar.", options: ["nos", "os", "les"], correct: "nos" },
+            { q: "(Wy) A vosotros ___ interesa el arte.", options: ["os", "les", "nos"], correct: "os" },
+            { q: "(Oni) A ellos ___ gustan los perros.", options: ["les", "los", "se"], correct: "les" },
+            { q: "A mis padres ___ gusta cocinar.", options: ["les", "le", "su"], correct: "les" },
             { q: "Me _______ escuchar música.", options: ["gusta", "gustan", "gusto"], correct: "gusta" },
+            { q: "Te _______ mucho el fútbol.", options: ["interesa", "interesan", "intereso"], correct: "interesa" },
+            { q: "Nos _______ este libro.", options: ["gusta", "gustan", "gustamos"], correct: "gusta" },
+            { q: "Le _______ la playa.", options: ["encanta", "encantan", "encante"], correct: "encanta" },
+            { q: "A mí no me _______ el café.", options: ["gusta", "gustan", "gusto"], correct: "gusta" },
+            { q: "Me _______ las películas de terror.", options: ["gustan", "gusta", "gustas"], correct: "gustan" },
+            { q: "Nos _______ los videojuegos.", options: ["encantan", "encanta", "encantamos"], correct: "encantan" },
+            { q: "A ellos les _______ los museos.", options: ["interesan", "interesa", "interesamos"], correct: "interesan" },
+            { q: "¿Te _______ tus profesores?", options: ["gustan", "gusta", "gustas"], correct: "gustan" },
+            { q: "No me _______ las matemáticas.", options: ["gustan", "gusta", "gusto"], correct: "gustan" },
+            { q: "Me _______ la cabeza. (Doler)", options: ["duele", "duelen", "duelo"], correct: "duele" },
+            { q: "Me _______ los pies. (Doler)", options: ["duelen", "duele", "duelas"], correct: "duelen" },
+            { q: "No me _______ el dinero. (Importar)", options: ["importa", "importan", "importo"], correct: "importa" }
         ];
 
         const QUIZ_COLLOCATIONS_DATA = [
             { q: "Quiero _______ una mesa para dos.", options: ["hacer", "reservar", "salir"], correct: "reservar" },
-            { q: "Voy a _______ la maleta ahora.", options: ["hacer", "tener", "pedir"], correct: "hacer" },
+            { q: "Voy a _______ la maleta now.", options: ["hacer", "tener", "pedir"], correct: "hacer" },
             { q: "Camarero, quiero _______ la cuenta.", options: ["pedir", "hacer", "reservar"], correct: "pedir" },
             { q: "Me gusta _______ deporte.", options: ["hacer", "jugar", "ir"], correct: "hacer" },
             { q: "Vamos a _______ de copas esta noche.", options: ["salir", "andar", "pasear"], correct: "salir" },
@@ -544,64 +583,136 @@
             );
         };
 
-        const GenericQuiz = ({ title, data, onBack }) => {
+        const GenericQuiz = ({ title, fullData, onBack }) => {
+            const [questions, setQuestions] = useState([]);
             const [current, setCurrent] = useState(0);
             const [score, setScore] = useState(0);
             const [finished, setFinished] = useState(false);
-            const [feedback, setFeedback] = useState(null);
+            const [feedback, setFeedback] = useState(null); // 'correct', 'wrong'
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [userHistory, setUserHistory] = useState([]); // track { q, userChoice, isCorrect }
+            const [reviewMode, setReviewMode] = useState(false);
+            const [showHint, setShowHint] = useState(false);
+
+            useEffect(() => {
+                startQuiz();
+            }, []);
+
+            const startQuiz = () => {
+                const shuffled = [...fullData]
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 10)
+                    .map(q => ({
+                        ...q,
+                        options: shuffleArray(q.options)
+                    }));
+                
+                setQuestions(shuffled);
+                setCurrent(0);
+                setScore(0);
+                setFinished(false);
+                setFeedback(null);
+                setSelectedOption(null);
+                setUserHistory([]);
+                setReviewMode(false);
+                setShowHint(false);
+            };
 
             const handleAnswer = (opt) => {
-                if (opt === data[current].correct) {
+                const isCorrect = opt === questions[current].correct;
+                setSelectedOption(opt);
+                setUserHistory([...userHistory, { 
+                    question: questions[current], 
+                    userChoice: opt, 
+                    isCorrect 
+                }]);
+
+                if (isCorrect) {
                     setScore(score + 1);
                     setFeedback('correct');
                 } else {
                     setFeedback('wrong');
                 }
-                
-                setTimeout(() => {
-                    setFeedback(null);
-                    if (current < data.length - 1) {
-                        setCurrent(current + 1);
-                    } else {
-                        setFinished(true);
-                    }
-                }, 1500);
             };
 
-            const restart = () => { setCurrent(0); setScore(0); setFinished(false); };
+            const nextQuestion = () => {
+                setFeedback(null);
+                setSelectedOption(null);
+                setShowHint(false);
+                if (current < questions.length - 1) {
+                    setCurrent(current + 1);
+                } else {
+                    setFinished(true);
+                }
+            };
+
+            if (questions.length === 0) return React.createElement('div', {}, "Ładowanie...");
 
             if (finished) {
+                if (reviewMode) {
+                    return React.createElement('div', {className: "flex flex-col h-full p-4 max-w-md mx-auto"},
+                        React.createElement('div', {className: "flex justify-between items-center mb-6"},
+                            React.createElement('button', {onClick: () => setReviewMode(false), className: "text-gray-400"}, React.createElement(ArrowLeft)),
+                            React.createElement('span', {className: "text-orange-500 font-bold"}, "Przegląd odpowiedzi"),
+                            React.createElement('div', {className: "w-6"})
+                        ),
+                        React.createElement('div', {className: "space-y-4 overflow-y-auto pb-4"},
+                            userHistory.map((item, idx) => (
+                                React.createElement('div', {key: idx, className: `p-4 rounded-xl border ${item.isCorrect ? 'bg-green-900/20 border-green-800' : 'bg-red-900/20 border-red-800'}`},
+                                    React.createElement('p', {className: "font-bold text-white mb-2"}, item.question.q),
+                                    React.createElement('p', {className: "text-sm text-gray-400"}, "Twoja odpowiedź: ", 
+                                        React.createElement('span', {className: item.isCorrect ? 'text-green-400' : 'text-red-400'}, item.userChoice)
+                                    ),
+                                    !item.isCorrect && React.createElement('p', {className: "text-sm text-gray-400"}, "Poprawna: ", 
+                                        React.createElement('span', {className: "text-green-400"}, item.question.correct)
+                                    )
+                                )
+                            ))
+                        )
+                    );
+                }
+
                 return React.createElement('div', {className: "flex flex-col items-center justify-center h-full p-6 text-center"},
                     React.createElement(Trophy, {size: 64, className: "text-yellow-500 mb-4"}),
                     React.createElement('h2', {className: "text-3xl font-bold text-white mb-2"}, "Koniec!"),
-                    React.createElement('p', {className: "text-gray-400 mb-6"}, `Twój wynik: ${score} / ${data.length}`),
-                    React.createElement('button', {onClick: restart, className: "bg-orange-600 text-white px-6 py-3 rounded-xl font-bold mb-4 w-full"}, "Zagraj ponownie"),
-                    React.createElement('button', {onClick: onBack, className: "text-gray-500 hover:text-white"}, "Wróć do menu")
+                    React.createElement('p', {className: "text-gray-400 mb-6"}, `Twój wynik: ${score} / ${questions.length}`),
+                    React.createElement('button', {onClick: () => setReviewMode(true), className: "bg-gray-800 text-white px-6 py-3 rounded-xl border border-gray-700 w-full mb-3 flex items-center justify-center gap-2"}, React.createElement(ListChecks, {size: 18}), "Zobacz swoje odpowiedzi"),
+                    React.createElement('button', {onClick: startQuiz, className: "bg-orange-600 text-white px-6 py-3 rounded-xl font-bold mb-4 w-full"}, "Zagraj ponownie (Nowe pytania)"),
+                    React.createElement('button', {onClick: onBack, className: "text-gray-500 hover:text-white px-6 py-3"}, "Wróć do menu")
                 );
             }
 
-            const q = data[current];
+            const q = questions[current];
 
             return React.createElement('div', {className: "flex flex-col h-full p-4 max-w-md mx-auto"},
                 React.createElement('div', {className: "flex justify-between items-center mb-6"},
                     React.createElement('button', {onClick: onBack, className: "text-gray-400"}, React.createElement(ArrowLeft)),
                     React.createElement('span', {className: "text-orange-500 font-bold"}, title),
-                    React.createElement('span', {className: "text-gray-500 text-sm"}, `${current + 1}/${data.length}`)
+                    React.createElement('span', {className: "text-gray-500 text-sm"}, `${current + 1}/${questions.length}`)
                 ),
 
                 React.createElement('div', {className: "flex-1 flex flex-col justify-center"},
-                    React.createElement('h3', {className: "text-xl font-bold text-white text-center mb-8 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg"},
-                        q.q,
-                        q.type === 'gustar' && React.createElement('span', {className: "block text-xs text-blue-400 mt-2 font-normal"}, "(Czasownik GUSTAR)"),
-                        q.type === 'normal' && React.createElement('span', {className: "block text-xs text-green-400 mt-2 font-normal"}, "(Czasownik ZWYKŁY)")
+                    React.createElement('div', {className: "relative mb-8 bg-gray-800 p-6 rounded-2xl border border-gray-700 shadow-lg text-center"},
+                        React.createElement('h3', {className: "text-xl font-bold text-white"}, q.q),
+                        (q.type === 'gustar' || q.type === 'normal') && React.createElement('div', {className: "absolute top-2 right-2"},
+                            React.createElement('button', {
+                                onClick: () => setShowHint(!showHint),
+                                className: `p-1.5 rounded-full transition ${showHint ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-700 text-gray-400 hover:text-white'}`
+                            }, React.createElement(Lightbulb, {size: 16})),
+                            showHint && React.createElement('span', {className: `absolute right-8 top-0 text-xs mt-2 px-2 py-1 rounded whitespace-nowrap ${q.type === 'gustar' ? 'text-blue-400 bg-blue-900/30' : 'text-green-400 bg-green-900/30'}`}, 
+                                q.type === 'gustar' ? 'Czasownik GUSTAR' : 'Czasownik ZWYKŁY'
+                            )
+                        )
                     ),
 
                     React.createElement('div', {className: "space-y-3"},
                         q.options.map((opt) => {
                             let btnClass = "w-full py-4 bg-gray-800 text-gray-200 font-bold rounded-xl border border-gray-700 hover:bg-gray-700 transition";
-                            if (feedback === 'correct' && opt === q.correct) btnClass = "w-full py-4 bg-green-600 text-white font-bold rounded-xl border border-green-500 shadow-lg scale-105";
-                            if (feedback === 'wrong' && opt === q.correct) btnClass = "w-full py-4 bg-green-600 text-white font-bold rounded-xl border border-green-500 opacity-50"; 
-                            if (feedback === 'wrong' && opt !== q.correct) btnClass = "w-full py-4 bg-red-900/50 text-red-200 font-bold rounded-xl border border-red-800";
+                            if (feedback) {
+                                if (opt === q.correct) btnClass = "w-full py-4 bg-green-600 text-white font-bold rounded-xl border border-green-500 shadow-lg scale-105";
+                                else if (opt === selectedOption && opt !== q.correct) btnClass = "w-full py-4 bg-red-900/50 text-red-200 font-bold rounded-xl border border-red-800 opacity-80";
+                                else btnClass = "w-full py-4 bg-gray-800 text-gray-500 font-bold rounded-xl border border-gray-700 opacity-50";
+                            }
 
                             return React.createElement('button', {
                                 key: opt,
@@ -613,8 +724,11 @@
                     )
                 ),
                 
-                feedback && React.createElement('div', {className: `mt-4 text-center font-bold animate-pulse ${feedback === 'correct' ? 'text-green-500' : 'text-red-500'}`},
-                    feedback === 'correct' ? 'Dobrze!' : 'Źle!'
+                feedback && React.createElement('div', {className: "mt-4 space-y-3"},
+                    React.createElement('button', {
+                        onClick: nextQuestion,
+                        className: "w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-xl border border-gray-600 transition"
+                    }, "Dalej")
                 )
             );
         };
@@ -623,24 +737,70 @@
             const [current, setCurrent] = useState(0);
             const [finished, setFinished] = useState(false);
             const [feedback, setFeedback] = useState(null);
+            const [userHistory, setUserHistory] = useState([]);
+            const [reviewMode, setReviewMode] = useState(false);
+            const [currentOptions, setCurrentOptions] = useState([]);
+            const [selectedOption, setSelectedOption] = useState(null);
 
             const scenario = HOTEL_SCENARIOS[current];
 
+            // Initialize shuffled options when scenario changes
+            useEffect(() => {
+                if (scenario) {
+                    setCurrentOptions(shuffleArray(scenario.options));
+                }
+            }, [scenario]);
+
             const handleChoice = (opt) => {
                 const isCorrect = opt === scenario.correct;
+                setSelectedOption(opt);
+                setUserHistory([...userHistory, {
+                    question: scenario,
+                    userChoice: opt,
+                    isCorrect
+                }]);
                 setFeedback(isCorrect ? 'correct' : 'wrong');
-                setTimeout(() => {
-                    setFeedback(null);
-                    if (current < HOTEL_SCENARIOS.length - 1) setCurrent(current + 1);
-                    else setFinished(true);
-                }, 1500);
             };
 
-            if (finished) return React.createElement('div', {className: "flex flex-col items-center justify-center h-full p-6 text-center"},
-                React.createElement(Hotel, {size: 64, className: "text-teal-500 mb-4"}),
-                React.createElement('h2', {className: "text-2xl font-bold text-white mb-4"}, "Symulacja Zakończona"),
-                React.createElement('button', {onClick: onBack, className: "bg-gray-800 text-white px-6 py-3 rounded-xl"}, "Wróć do menu")
-            );
+            const nextScenario = () => {
+                setFeedback(null);
+                setSelectedOption(null);
+                if (current < HOTEL_SCENARIOS.length - 1) setCurrent(current + 1);
+                else setFinished(true);
+            };
+
+            if (finished) {
+                if (reviewMode) {
+                    return React.createElement('div', {className: "flex flex-col h-full p-4 max-w-md mx-auto"},
+                        React.createElement('div', {className: "flex justify-between items-center mb-6"},
+                            React.createElement('button', {onClick: () => setReviewMode(false), className: "text-gray-400"}, React.createElement(ArrowLeft)),
+                            React.createElement('span', {className: "text-teal-500 font-bold"}, "Przegląd odpowiedzi"),
+                            React.createElement('div', {className: "w-6"})
+                        ),
+                        React.createElement('div', {className: "space-y-4 overflow-y-auto pb-4"},
+                            userHistory.map((item, idx) => (
+                                React.createElement('div', {key: idx, className: `p-4 rounded-xl border ${item.isCorrect ? 'bg-green-900/20 border-green-800' : 'bg-red-900/20 border-red-800'}`},
+                                    React.createElement('p', {className: "text-xs text-gray-500 mb-1"}, "Sytuacja:"),
+                                    React.createElement('p', {className: "text-gray-300 italic mb-2"}, item.question.context),
+                                    React.createElement('p', {className: "text-sm text-gray-400"}, "Twoja odpowiedź: ", 
+                                        React.createElement('span', {className: item.isCorrect ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}, item.userChoice)
+                                    ),
+                                    !item.isCorrect && React.createElement('p', {className: "text-sm text-gray-400"}, "Poprawna: ", 
+                                        React.createElement('span', {className: "text-green-400 font-bold"}, item.question.correct)
+                                    )
+                                )
+                            ))
+                        )
+                    );
+                }
+
+                return React.createElement('div', {className: "flex flex-col items-center justify-center h-full p-6 text-center"},
+                    React.createElement(Hotel, {size: 64, className: "text-teal-500 mb-4"}),
+                    React.createElement('h2', {className: "text-2xl font-bold text-white mb-4"}, "Symulacja Zakończona"),
+                    React.createElement('button', {onClick: () => setReviewMode(true), className: "bg-gray-800 text-white px-6 py-3 rounded-xl border border-gray-700 w-full mb-3 flex items-center justify-center gap-2"}, React.createElement(ListChecks, {size: 18}), "Zobacz swoje odpowiedzi"),
+                    React.createElement('button', {onClick: onBack, className: "text-gray-500 hover:text-white px-6 py-3"}, "Wróć do menu")
+                );
+            }
 
             return React.createElement('div', {className: "flex flex-col h-full p-4 max-w-md mx-auto"},
                 React.createElement('div', {className: "flex justify-between items-center mb-6"},
@@ -670,18 +830,30 @@
 
                     React.createElement('div', {className: "space-y-3 mt-8"},
                         React.createElement('p', {className: "text-center text-sm text-gray-500 mb-2"}, "Wybierz reakcję:"),
-                        scenario.options.map((opt) => (
-                            React.createElement('button', {
+                        currentOptions.map((opt) => {
+                            let btnClass = `w-full p-4 rounded-xl text-left font-medium transition border ${
+                                !feedback ? 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500' : ''
+                            }`;
+                            
+                            if (feedback) {
+                                if (opt === scenario.correct) btnClass = 'bg-green-600 border-green-500 text-white';
+                                else if (opt === selectedOption && opt !== scenario.correct) btnClass = 'bg-gray-800 border-red-500 text-red-400 opacity-80';
+                                else btnClass = 'bg-gray-800 border-gray-700 text-gray-500 opacity-50';
+                            }
+
+                            return React.createElement('button', {
                                 key: opt,
                                 onClick: () => !feedback && handleChoice(opt),
-                                className: `w-full p-4 rounded-xl text-left font-medium transition border ${
-                                    feedback === 'correct' && opt === scenario.correct ? 'bg-green-600 border-green-500 text-white' :
-                                    feedback === 'wrong' && opt !== scenario.correct ? 'bg-gray-800 border-gray-700 text-gray-500' : 
-                                    feedback === 'wrong' && opt === scenario.correct ? 'bg-green-900/50 border-green-500 text-green-200' : 
-                                    'bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500'
-                                }`
+                                className: btnClass
                             }, opt)
-                        ))
+                        })
+                    ),
+
+                    feedback && React.createElement('div', {className: "mt-4 space-y-3"},
+                        React.createElement('button', {
+                            onClick: nextScenario,
+                            className: "w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-xl border border-gray-600 transition"
+                        }, "Dalej")
                     )
                 )
             );
@@ -689,11 +861,15 @@
 
         const SpanishApp = () => {
             const [view, setView] = useState('menu');
-            const [learnedCards, setLearnedCards] = useState([]);
+            const [learnedCards, setLearnedCards] = useState(() => {
+                const saved = localStorage.getItem('learnedCards');
+                return saved ? JSON.parse(saved) : [];
+            });
 
-            // Load learned cards from local storage if available (optional enhancement)
-            // For now, simple state
-            
+            useEffect(() => {
+                localStorage.setItem('learnedCards', JSON.stringify(learnedCards));
+            }, [learnedCards]);
+
             const handleMarkLearned = (id) => {
                 setLearnedCards(prev => [...prev, id]);
             };
@@ -767,9 +943,9 @@
             return React.createElement('div', {className: "min-h-screen bg-gray-950 text-white font-sans"},
                 view === 'flashcards' && React.createElement(Flashcards, {onBack: () => setView('menu'), learnedCards, onMarkLearned: handleMarkLearned, onViewLearned: () => setView('learned_list'), onUnlearn: handleUnlearn}),
                 view === 'learned_list' && React.createElement(LearnedList, {onBack: () => setView('menu'), learnedCards, onUnlearn: handleUnlearn}),
-                view === 'quiz_agree' && React.createElement(GenericQuiz, {title: "Quiz: También / Tampoco", data: QUIZ_AGREEMENT_DATA, onBack: () => setView('menu')}),
-                view === 'quiz_gustar' && React.createElement(GenericQuiz, {title: "Quiz: Gustar", data: QUIZ_GUSTAR_DATA, onBack: () => setView('menu')}),
-                view === 'collocations' && React.createElement(GenericQuiz, {title: "Kolokacje (ABC)", data: QUIZ_COLLOCATIONS_DATA, onBack: () => setView('menu')}),
+                view === 'quiz_agree' && React.createElement(GenericQuiz, {title: "Quiz: También / Tampoco", fullData: QUIZ_AGREEMENT_DATA_FULL, onBack: () => setView('menu')}),
+                view === 'quiz_gustar' && React.createElement(GenericQuiz, {title: "Quiz: Gustar", fullData: QUIZ_GUSTAR_DATA_FULL, onBack: () => setView('menu')}),
+                view === 'collocations' && React.createElement(GenericQuiz, {title: "Kolokacje (ABC)", fullData: QUIZ_COLLOCATIONS_DATA, onBack: () => setView('menu')}),
                 view === 'hotel' && React.createElement(HotelSimulator, {onBack: () => setView('menu')})
             );
         };
