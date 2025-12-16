@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hiszpański: Kolokwium</title>
     
-    <!-- Konfiguracja Ikon dla Telefonów i Przeglądarek -->
+    <!-- Konfiguracja Ikon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇪🇸</text></svg>">
     <link rel="apple-touch-icon" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/flags/4x3/es.svg">
     <meta name="theme-color" content="#030712">
@@ -227,17 +227,14 @@
             { q: "No me interesa la política. (-)", options: ["A mí tampoco", "A mí sí", "Yo tampoco"], correct: "A mí tampoco", type: "gustar" },
             { q: "Tengo hambre. (+)", options: ["Yo también", "A mí también", "Yo no"], correct: "Yo también", type: "normal" },
             { q: "No soy francés. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
-            { q: "Me encanta viajar. (+)", options: ["A mí también", "Yo też", "A mí sí"], correct: "A mí también", type: "gustar" },
+            { q: "Me encanta viajar. (+)", options: ["A mí también", "Yo también", "A mí sí"], correct: "A mí también", type: "gustar" },
             { q: "No trabajo los domingos. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo no"], correct: "Yo tampoco", type: "normal" },
             { q: "Me gusta mucho leer. (-)", options: ["A mí no", "A mí tampoco", "Yo no"], correct: "A mí no", type: "gustar_disagree" },
             { q: "No me gusta el golf. (+)", options: ["A mí sí", "A mí también", "Yo sí"], correct: "A mí sí", type: "gustar_disagree" },
-            { q: "Tengo hambre. (+)", options: ["Yo también", "A mí también", "Yo no"], correct: "Yo también", type: "normal" },
-            { q: "Vivo en Madrid. (+)", options: ["Yo también", "A mí też", "Yo no"], correct: "Yo też", type: "normal" },
-            { q: "Hablo inglés. (+)", options: ["Yo también", "A mí también", "Yo sí"], correct: "Yo też", type: "normal" },
-            { q: "Soy estudiante. (+)", options: ["Yo también", "A mí también", "A mí no"], correct: "Yo też", type: "normal" },
-            { q: "Trabajo en un banco. (+)", options: ["Yo también", "Yo no", "A mí también"], correct: "Yo też", type: "normal" },
-            { q: "No soy francés. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
-            { q: "No trabajo los domingos. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo no"], correct: "Yo tampoco", type: "normal" },
+            { q: "Vivo en Madrid. (+)", options: ["Yo también", "A mí también", "Yo no"], correct: "Yo también", type: "normal" },
+            { q: "Hablo inglés. (+)", options: ["Yo también", "A mí también", "Yo sí"], correct: "Yo también", type: "normal" },
+            { q: "Soy estudiante. (+)", options: ["Yo también", "A mí también", "A mí no"], correct: "Yo también", type: "normal" },
+            { q: "Trabajo en un banco. (+)", options: ["Yo también", "Yo no", "A mí también"], correct: "Yo también", type: "normal" },
             { q: "No tengo coche. (-)", options: ["Yo tampoco", "A mí tampoco", "Yo sí"], correct: "Yo tampoco", type: "normal" },
             { q: "No vivo aquí. (-)", options: ["Yo tampoco", "Yo no", "A mí tampoco"], correct: "Yo tampoco", type: "normal" },
             { q: "Estudio mucho. (-)", options: ["Yo no", "Yo tampoco", "A mí no"], correct: "Yo no", type: "normal_disagree" },
@@ -270,7 +267,7 @@
 
         const QUIZ_COLLOCATIONS_DATA = [
             { q: "Quiero _______ una mesa para dos.", options: ["hacer", "reservar", "salir"], correct: "reservar" },
-            { q: "Voy a _______ la maleta now.", options: ["hacer", "tener", "pedir"], correct: "hacer" },
+            { q: "Voy a _______ la maleta ahora.", options: ["hacer", "tener", "pedir"], correct: "hacer" },
             { q: "Camarero, quiero _______ la cuenta.", options: ["pedir", "hacer", "reservar"], correct: "pedir" },
             { q: "Me gusta _______ deporte.", options: ["hacer", "jugar", "ir"], correct: "hacer" },
             { q: "Vamos a _______ de copas esta noche.", options: ["salir", "andar", "pasear"], correct: "salir" },
@@ -599,6 +596,7 @@
             }, []);
 
             const startQuiz = () => {
+                // Shuffle questions and options for each question
                 const shuffled = [...fullData]
                     .sort(() => Math.random() - 0.5)
                     .slice(0, 10)
@@ -712,17 +710,17 @@
                             if (feedback) {
                                 if (opt === q.correct) {
                                     if (opt === selectedOption) {
-                                        // Selected Correct (Bright Green)
-                                        btnClass += "bg-green-600 border-green-500 text-white shadow-lg scale-105";
+                                        // Selected Correct
+                                        btnClass += "bg-green-600 border-green-500 text-white shadow-lg";
                                     } else {
-                                        // Not Selected Correct (Dark Green)
+                                        // Not Selected Correct (Darker Green)
                                         btnClass += "bg-green-800/80 border-green-600 text-green-100 opacity-90";
                                     }
                                 } else if (opt === selectedOption && opt !== q.correct) {
-                                    // Selected Wrong (Red)
+                                    // Selected Wrong
                                     btnClass += "bg-red-900/50 border-red-500 text-red-200 opacity-80";
                                 } else {
-                                    // Not Selected Wrong (Dimmed)
+                                    // Not Selected Wrong
                                     btnClass += "bg-gray-800 border-gray-700 text-gray-500 opacity-40";
                                 }
                             } else {
@@ -847,7 +845,9 @@
                     React.createElement('div', {className: "space-y-3 mt-8"},
                         React.createElement('p', {className: "text-center text-sm text-gray-500 mb-2"}, "Wybierz reakcję:"),
                         currentOptions.map((opt) => {
-                            let btnClass = "w-full p-4 rounded-xl text-left font-medium transition border ";
+                            let btnClass = `w-full p-4 rounded-xl text-left font-medium transition border ${
+                                !feedback ? 'bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500' : ''
+                            }`;
                             
                             if (feedback) {
                                 if (opt === scenario.correct) {
@@ -865,9 +865,6 @@
                                     // Not Selected Wrong
                                     btnClass += "bg-gray-800 border-gray-700 text-gray-500 opacity-40";
                                 }
-                            } else {
-                                // Default State
-                                btnClass += "bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:border-teal-500";
                             }
 
                             return React.createElement('button', {
